@@ -3,7 +3,6 @@ import dlib
 import cv2 as cv
 import numpy as np
 
-#TODO Convert while loop into a function
 #TODO Enumerate x and y coordinates
 
 capture = cv.VideoCapture(0)

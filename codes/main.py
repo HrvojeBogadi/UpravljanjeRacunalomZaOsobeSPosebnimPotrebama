@@ -5,6 +5,9 @@ import functions as fn
 import win32api as win
 import calibration as calib
 
+#TODO Implement relation between a fixed point on the face or eye and center of the eye for better precision
+#           (may prevent twitching while in use)
+
 capture = cv.VideoCapture(0)
 
 face_detector = dlib.get_frontal_face_detector()
