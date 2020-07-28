@@ -15,11 +15,11 @@ roiFound = False
 
 roi_x1, roi_x2, roi_y1, roi_y2 = 0, 0, 0, 0
 
-
 def determinGazePoint(coordinate, numberOfSamples): #Coordinate is represented by numbers (0 -> X, 1 -> Y)
     avg = 0
-    roiFound = False
     i = numberOfSamples
+    global roiFound
+    global roi_x1, roi_x2, roi_y1, roi_y2
 
     while(i > 0):
         _, frame = capture.read()
@@ -37,7 +37,6 @@ def determinGazePoint(coordinate, numberOfSamples): #Coordinate is represented b
                 roiFound = True
             roi = gray[roi_y1 : roi_y2, roi_x1 : roi_x2]
             roi = fn.resizeImage(roi)
-            cv.imshow("SLI", roi)
             standImg = fn.standardizeImageBrightness(roi)
             edge = fn.findIrisEdge(standImg)
             center = fn.fitEllipse(edge)

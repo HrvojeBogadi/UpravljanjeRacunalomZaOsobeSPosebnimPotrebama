@@ -25,39 +25,35 @@ avgX = 0
 avgY = 0
 
 while(True):
-    while (t > 0):
-        t -= 1
+    _, frame = capture.read()
+    gray = fn.convertImageToGray(frame)
 
-        _, frame = capture.read()
+    faces = face_detector(gray)
+    for face in faces:
+        x1 = face.left()
+        y1 = face.top()
+        x2 = face.right()
+        y2 = face.bottom()
 
-        gray = fn.convertImageToGray(frame)
+        landmarks = predictor(gray, face)
 
-        faces = face_detector(gray)
+        if not roiFound:
+            roi_x1, roi_x2, roi_y1, roi_y2 = fn.findROI(gray, landmarks)
+            roiFound = True
+        roi = gray[roi_y1 : roi_y2, roi_x1 : roi_x2]
+        roi = fn.resizeImage(roi)
+        cv.imshow("Roi", roi)
 
-        for face in faces:
-            x1 = face.left()
-            y1 = face.top()
-            x2 = face.right()
-            y2 = face.bottom()
+        standImg = fn.standardizeImageBrightness(roi)
 
-            landmarks = predictor(gray, face)
+        edge = fn.findIrisEdge(standImg)
 
-            if not roiFound:
-                roi_x1, roi_x2, roi_y1, roi_y2 = fn.findROI(gray, landmarks)
-                roiFound = True
-            roi = gray[roi_y1 : roi_y2, roi_x1 : roi_x2]
-            roi = fn.resizeImage(roi)
+        center = fn.fitEllipse(edge)
 
-            standImg = fn.standardizeImageBrightness(roi)
+        avgX += center[0]
+        avgY += center[1]
 
-            edge = fn.findIrisEdge(standImg)
-
-            center = fn.fitEllipse(edge)
-
-            avgX += center[0]
-            avgY += center[1]
-
-            cv.imshow("Gray", gray)
+        cv.imshow("Gray", gray)
 
     avgX /= 5
     avgY /= 5
