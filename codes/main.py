@@ -3,12 +3,14 @@ import cv2 as cv
 import dlib
 import functions as fn
 import win32api as win
-import calibrate as calib
+import calibration as calib
 
 capture = cv.VideoCapture(0)
 
 face_detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("bin\shape_predictor_68_face_landmarks.dat")
+
+roiFound = False
 
 screen_width = win.GetSystemMetrics(0)
 screen_height = win.GetSystemMetrics(1)
@@ -16,7 +18,7 @@ screen_height = win.GetSystemMetrics(1)
 center_x = 0
 center_y = 0
 
-x_min, x_max, y_min, y_max = calib.Calibration(screen_width, screen_height)
+x_min, x_max, y_min, y_max = calib.calibrate(screen_width, screen_height)
 
 t = 5
 avgX = 0
@@ -40,7 +42,11 @@ while(True):
 
             landmarks = predictor(gray, face)
 
-            roi = fn.findROI(gray, landmarks)
+            if not roiFound:
+                roi_x1, roi_x2, roi_y1, roi_y2 = fn.findROI(gray, landmarks)
+                roiFound = True
+            roi = gray[roi_y1 : roi_y2, roi_x1 : roi_x2]
+            roi = fn.resizeImage(roi)
 
             standImg = fn.standardizeImageBrightness(roi)
 

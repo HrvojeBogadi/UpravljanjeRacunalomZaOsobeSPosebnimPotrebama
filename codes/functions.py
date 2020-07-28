@@ -16,12 +16,13 @@ right_eye_rb = 46
 
 offset = 10
 
-resize_scale = 1
+resize_scale = 10
 
 target_brightness = 0.50
 
 kernel = np.ones((5,5),np.uint8)
 
+#TODO Find ROI only once at the beggining of the program
 
 def convertImageToGray(frame):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
@@ -41,11 +42,7 @@ def findROI(frame, landmarks):
     roi_y1 = landmarks.part(left_eye_lt).y-offset
     roi_y2 = landmarks.part(left_eye_lb).y+offset
 
-    roi = frame[roi_y1 : roi_y2, roi_x1 : roi_x2]
-
-    roi = resizeImage(roi)
-
-    return roi
+    return roi_x1, roi_x2, roi_y1, roi_y2
 
 def standardizeImageBrightness(frame):
     cols, rows = frame.shape

@@ -3,12 +3,14 @@ import dlib
 import cv2 as cv
 import numpy as np
 
+#TODO Convert while loop into a function
+
 capture = cv.VideoCapture(0)
 
 face_detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("bin\shape_predictor_68_face_landmarks.dat")
 
-def Calibration(screen_width, screen_height):
+def calibrate(screen_width, screen_height):
     i = 25
     avg = 0
 
