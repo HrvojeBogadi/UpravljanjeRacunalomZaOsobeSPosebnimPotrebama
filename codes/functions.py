@@ -16,25 +16,24 @@ right_eye_rb = 46
 
 offset = 10
 
-resize_scale = 10
+resize_scale = 4
 
-target_brightness = 0.50
+target_brightness = 0.60
 
 kernel = np.ones((5,5),np.uint8)
 
-#TODO Find ROI only once at the beggining of the program
-
 def convertImageToGray(frame):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    blur = cv.medianBlur(gray, 5)
     return gray
 
 def resizeImage(frame):
     width = int(frame.shape[1] * resize_scale)
     height = int(frame.shape[0] * resize_scale)
     dimension = (width, height)
+    resize = cv.resize(frame, dimension, interpolation = cv.INTER_AREA)
+    denoise = cv.fastNlMeansDenoising(resize, None, 15, 7, 21)
 
-    return cv.resize(frame, dimension, interpolation = cv.INTER_AREA)
+    return denoise
 
 def findROI(frame, landmarks):
     roi_x1 = landmarks.part(left_eye_l).x-offset
@@ -44,7 +43,7 @@ def findROI(frame, landmarks):
 
     return roi_x1, roi_x2, roi_y1, roi_y2
 
-def standardizeImageBrightness(frame):
+def standardizeImage(frame):
     cols, rows = frame.shape
     brightness = np.sum(frame) / (255 * cols * rows)
     brightness_ratio = brightness / target_brightness
@@ -52,13 +51,12 @@ def standardizeImageBrightness(frame):
     return frame
 
 def findIrisEdge(frame):
-    _, thresh = cv.threshold(frame, 64, 255, cv.THRESH_BINARY_INV)
+    _, thresh = cv.threshold(frame, 40, 255, cv.THRESH_BINARY_INV)
     closing = cv.morphologyEx(thresh, cv.MORPH_CLOSE, kernel)
     canny = cv.Canny(closing, 100, 300)
     return canny
 
 def fitEllipse(edge):
-    maxi = 0
     maxArea = 0
     center = (0, 0)
 
@@ -71,7 +69,6 @@ def fitEllipse(edge):
             ellipse[i] = ((x, y), (MA, ma), angle)
             if MA * ma * np.pi > maxArea:
                 maxArea = MA * ma * np.pi
-                maxi = i
                 center = (int(x), int(y))
     
     if center is None:
