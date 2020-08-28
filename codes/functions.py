@@ -16,42 +16,28 @@ right_eye_rb = 46
 
 offset = 10
 
-resize_scale = 4
-
-target_brightness = 0.60
+target_brightness = 0.6
 
 kernel = np.ones((5,5),np.uint8)
 
-def convertImageToGray(frame):
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    return gray
-
-def resizeImage(frame):
-    width = int(frame.shape[1] * resize_scale)
-    height = int(frame.shape[0] * resize_scale)
-    dimension = (width, height)
-    resize = cv.resize(frame, dimension, interpolation = cv.INTER_AREA)
-    denoise = cv.fastNlMeansDenoising(resize, None, 15, 7, 21)
-
-    return denoise
-
 def findROI(frame, landmarks):
-    roi_x1 = landmarks.part(left_eye_l).x-offset
-    roi_x2 = landmarks.part(left_eye_r).x+offset
-    roi_y1 = landmarks.part(left_eye_lt).y-offset
-    roi_y2 = landmarks.part(left_eye_lb).y+offset
-
+    roi_x1 = landmarks.part(left_eye_l).x - offset
+    roi_x2 = landmarks.part(left_eye_r).x + offset
+    roi_y1 = landmarks.part(left_eye_lt).y - offset
+    roi_y2 = landmarks.part(left_eye_lb).y + offset
     return roi_x1, roi_x2, roi_y1, roi_y2
 
 def standardizeImage(frame):
+    frame = cv.medianBlur(frame, 5)
     cols, rows = frame.shape
     brightness = np.sum(frame) / (255 * cols * rows)
     brightness_ratio = brightness / target_brightness
     frame = cv.convertScaleAbs(frame, alpha=(1 / brightness_ratio), beta=0)
-    return frame
+    denoise = cv.fastNlMeansDenoising(frame, None, 15, 7, 21)
+    return denoise
 
 def findIrisEdge(frame):
-    _, thresh = cv.threshold(frame, 40, 255, cv.THRESH_BINARY_INV)
+    _, thresh = cv.threshold(frame, 70, 255, cv.THRESH_BINARY_INV)
     closing = cv.morphologyEx(thresh, cv.MORPH_CLOSE, kernel)
     canny = cv.Canny(closing, 100, 300)
     return canny
@@ -74,3 +60,32 @@ def fitEllipse(edge):
     if center is None:
         return
     return center
+
+def findEyeCenter(landmarks):
+    midPointTop = int( ( landmarks.part(left_eye_lt).x + landmarks.part(left_eye_rt).x ) / 2), int( ( landmarks.part(left_eye_lt).y + landmarks.part(left_eye_rt).y ) / 2)
+    midPointBottom = int( ( landmarks.part(left_eye_lb).x + landmarks.part(left_eye_rb).x ) / 2), int( ( landmarks.part(left_eye_lb).y + landmarks.part(left_eye_rb).y ) / 2)
+    midPointLeft = landmarks.part(left_eye_l).x, landmarks.part(left_eye_l).y
+    midPointRight = landmarks.part(left_eye_r).x, landmarks.part(left_eye_r).y
+
+    return midPointTop, midPointBottom, midPointLeft, midPointRight
+
+def splitEyeRegionsVertical(landmarks):
+    totalWidth = landmarks.part(left_eye_r).x - landmarks.part(left_eye_l).x
+    areaWidth = int( totalWidth / 3 )
+
+    w1 = landmarks.part(left_eye_l).x + areaWidth
+    w2 = landmarks.part(left_eye_l).x + areaWidth * 2
+    
+    return w1, w2
+
+def moveCursorVertical(landmarks, eyelidHeightAvg):
+    midPointTop, midPointBottom, _, _ = findEyeCenter(landmarks)
+    y1 = midPointBottom[1]
+    y2 = midPointTop[1]
+    direction = (y1 - y2) - eyelidHeightAvg
+    offset = int( eyelidHeightAvg / 4 )
+
+    if (direction > offset):
+        return -1
+    elif (direction < (0 - offset)):
+        return 1
