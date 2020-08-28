@@ -1,7 +1,7 @@
 # UpravljanjeRacunalomZaOsobeSPosebnimPotrebama
 Final paper on "Computer Control For People With Special Needs"
 
-All of the code above is written for a final paper on Faculty of Electrical Engineering, Computer Science and Information Technology Osijek
+All of the code above is written for a final paper on Faculty of Electrical Engineering, Computer Science and Information Technology Osijek, Croatia
 
 The basic concept is to discover where a person is looking and move the mouse pointer accordingly. This is achieved by using facial detectors and image processing methods.
 
