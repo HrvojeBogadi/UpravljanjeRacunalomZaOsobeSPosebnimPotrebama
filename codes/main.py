@@ -39,7 +39,6 @@ while(True):
             n -= 1
         elif (n == 0):
             eyelidHeightAvg = eyelidHeightAvg / 25
-            print(eyelidHeightAvg)
             n = -1
 
 
